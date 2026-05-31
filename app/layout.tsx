@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Toolbar from "./components/toolbar";
 import { ToolbarProvider } from "./contexts/toolbar-context";
+import { ThemeProvider } from "./contexts/theme-context";
+import { ThemeToggle } from "./components/theme-toggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,13 +31,16 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <ToolbarProvider>
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-md:w-[95%] max-md:overflow-x-auto">
-            <Toolbar />
-          </div>
-          {children}
-        </ToolbarProvider>
+      <body className="min-h-full flex flex-col dark:bg-zinc-900 transition-colors">
+        <ThemeProvider>
+          <ToolbarProvider>
+            <ThemeToggle />
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-md:w-[95%] max-md:overflow-x-auto">
+              <Toolbar />
+            </div>
+            {children}
+          </ToolbarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

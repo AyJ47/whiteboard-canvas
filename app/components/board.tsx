@@ -7,6 +7,8 @@ import { BoardControls } from "./board/board-controls";
 import { StickyNotesLayer } from "./board/sticky-notes-layer";
 import { TextEditor } from "./board/text-editor";
 import { FakeCollaboration } from "./board/fake-collaboration";
+import { useBoardHistory } from "../hooks/use-board-history";
+import { useTheme } from "../contexts/theme-context";
 import {
   getStickyNoteFontSize,
   getVisibleTextColor,
@@ -65,6 +67,23 @@ const Board = () => {
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [storageReady, setStorageReady] = useState(false);
   const [editingTextShapeId, setEditingTextShapeId] = useState<string | null>(null);
+  const [cursorStyle, setCursorStyle] = useState("default");
+  const [shouldCommit, setShouldCommit] = useState(false);
+  const { isDark } = useTheme();
+
+  const {
+    historyIndex,
+    historyLength,
+    commitToHistory,
+    undo,
+    redo,
+    resetHistory,
+  } = useBoardHistory(initialShapes, initialStickyNotes);
+
+  const shapesRef = useRef(shapes);
+  shapesRef.current = shapes;
+  const stickyNotesRef = useRef(stickyNotes);
+  stickyNotesRef.current = stickyNotes;
 
   const selectedShapes = shapes.filter((shape) => selectedIds.includes(shape.id));
   const selectedBox = selectedTool === "select" ? getShapesBox(selectedShapes) : null;
@@ -93,6 +112,7 @@ const Board = () => {
         setStickyNotes(storedState.stickyNotes);
         setViewportOffset(storedState.viewportOffset);
         setZoom(storedState.zoom);
+        resetHistory(storedState.shapes, storedState.stickyNotes);
       }
 
       setStorageReady(true);
@@ -132,6 +152,13 @@ const Board = () => {
     };
   }, [editingTextShapeId]);
 
+  useEffect(() => {
+    if (shouldCommit) {
+      commitToHistory(shapes, stickyNotes);
+      setShouldCommit(false);
+    }
+  }, [shouldCommit, shapes, stickyNotes, commitToHistory]);
+
   const zoomAtPoint = useCallback((screenPoint: Point, nextZoom: number) => {
     const clampedZoom = clampZoom(nextZoom);
 
@@ -158,6 +185,8 @@ const Board = () => {
     };
   }, []);
 
+  
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEditableTarget(event.target)) {
@@ -182,6 +211,22 @@ const Board = () => {
         return;
       }
 
+      if ((event.ctrlKey || event.metaKey) && event.key === "z") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key === "y") {
+        event.preventDefault();
+        handleRedo();
+        return;
+      }
+
       if (event.key !== "Backspace" && event.key !== "Delete") {
         if (event.key === "Enter" && selectedIds.length === 1) {
           const selectedShape = shapes.find((shape) => shape.id === selectedIds[0]);
@@ -200,12 +245,13 @@ const Board = () => {
       }
 
       event.preventDefault();
-      setShapes((currentShapes) =>
-        currentShapes.filter((shape) => !selectedIds.includes(shape.id))
-      );
-      setStickyNotes((currentNotes) =>
-        currentNotes.filter((note) => note.id !== selectedStickyNoteId)
-      );
+      const nextShapes = shapesRef.current.filter((shape) => !selectedIds.includes(shape.id));
+      const nextNotes = stickyNotesRef.current.filter((note) => note.id !== selectedStickyNoteId);
+      
+      setShapes(nextShapes);
+      setStickyNotes(nextNotes);
+      setShouldCommit(true);
+
       setSelectedIds([]);
       setSelectedStickyNoteId(null);
       setDraggingIds([]);
@@ -222,49 +268,51 @@ const Board = () => {
     };
   }, [boardSize, selectedIds, selectedStickyNoteId, shapes, zoom, zoomAtPoint]);
 
+  
+
   useEffect(() => {
     const canvas = canvasRef.current;
-
     if (!canvas) {
       return;
     }
-
     const pixelRatio = window.devicePixelRatio || 1;
     const context = canvas.getContext("2d");
-
     if (!context) {
       return;
     }
-
     canvas.width = boardSize.width * pixelRatio;
     canvas.height = boardSize.height * pixelRatio;
     canvas.style.width = `${boardSize.width}px`;
     canvas.style.height = `${boardSize.height}px`;
-
+  
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    context.clearRect(0, 0, boardSize.width, boardSize.height);
-    drawGrid(context, boardSize, viewportOffset, zoom);
-
+  
+    // ✅ Fill background explicitly so canvas isn't transparent
+    context.fillStyle = isDark ? "#18181b" : "#ffffff";
+    context.fillRect(0, 0, boardSize.width, boardSize.height);
+  
+    drawGrid(context, boardSize, viewportOffset, zoom, isDark);
+  
     context.save();
     context.translate(viewportOffset.x, viewportOffset.y);
     context.scale(zoom, zoom);
-
+  
     shapes.forEach((shape) => {
-      drawShape(context, shape, draggingIds.includes(shape.id));
+      drawShape(context, shape, draggingIds.includes(shape.id), isDark);
     });
-
+  
     if (draftShape) {
-      drawShape(context, draftShape, true);
+      drawShape(context, draftShape, true, isDark);
     }
-
+  
     if (selectedBox) {
-      drawTransformer(context, selectedBox, zoom);
+      drawTransformer(context, selectedBox, zoom, isDark);
     }
-
-    drawSelection(context, selectionBox);
-
+  
+    drawSelection(context, selectionBox, isDark);
+  
     context.restore();
-  }, [boardSize, draftShape, draggingIds, selectedBox, selectionBox, shapes, viewportOffset, zoom]);
+  }, [boardSize, draftShape, draggingIds, selectedBox, selectionBox, shapes, viewportOffset, zoom, isDark]);
 
   const hitTestShape = (point: Point) => {
     for (let index = shapes.length - 1; index >= 0; index -= 1) {
@@ -303,6 +351,7 @@ const Board = () => {
       const note = createStickyNote(worldPoint);
 
       setStickyNotes((currentNotes) => [...currentNotes, note]);
+      setShouldCommit(true);
       setSelectedTool("select");
       setSelectedIds([]);
       setSelectedStickyNoteId(note.id);
@@ -316,6 +365,7 @@ const Board = () => {
       const textShape = createTextShape(worldPoint, selectedColor);
 
       setShapes((currentShapes) => [...currentShapes, textShape]);
+      setShouldCommit(true);
       setSelectedTool("select");
       setSelectedIds([textShape.id]);
       setSelectedStickyNoteId(null);
@@ -522,6 +572,35 @@ const Board = () => {
             : note
         )
       );
+      return;
+    }
+
+    if (interaction.type === "idle" && selectedTool === "select") {
+      if (selectedBox) {
+        const handle = getResizeHandleAtPoint(worldPoint, selectedBox, zoom);
+        if (handle) {
+          const cursorMap: Record<string, string> = {
+            nw: "nwse-resize",
+            se: "nwse-resize",
+            ne: "nesw-resize",
+            sw: "nesw-resize",
+            n: "ns-resize",
+            s: "ns-resize",
+            e: "ew-resize",
+            w: "ew-resize",
+          };
+          setCursorStyle(cursorMap[handle]);
+          return;
+        }
+      }
+
+      const hitShape = hitTestShape(worldPoint);
+      if (hitShape) {
+        setCursorStyle("move");
+        return;
+      }
+
+      setCursorStyle("default");
     }
   };
 
@@ -545,9 +624,19 @@ const Board = () => {
             id: `${draftShape.type}-${crypto.randomUUID()}`,
           },
         ]);
+        setShouldCommit(true);
       }
 
       setDraftShape(null);
+    }
+
+    if (
+      interaction.type === "dragging" ||
+      interaction.type === "resizing" ||
+      interaction.type === "draggingNote" ||
+      interaction.type === "resizingNote"
+    ) {
+      setShouldCommit(true);
     }
 
     if (interaction.type === "selecting" && selectionBox) {
@@ -720,6 +809,7 @@ const Board = () => {
         note.id === noteId ? { ...note, content } : note
       )
     );
+    setShouldCommit(true);
   };
 
   const updateTextShapeContent = (shapeId: string, content: string) => {
@@ -740,12 +830,14 @@ const Board = () => {
         };
       })
     );
+    setShouldCommit(true);
   };
 
   const updateStickyNoteColor = (noteId: string, color: string) => {
     setStickyNotes((currentNotes) =>
       currentNotes.map((note) => (note.id === noteId ? { ...note, color } : note))
     );
+    setShouldCommit(true);
   };
 
   const updateStickyNoteFontSize = (noteId: string, delta: number) => {
@@ -762,12 +854,14 @@ const Board = () => {
           : note
       )
     );
+    setShouldCommit(true);
   };
 
   const deleteStickyNote = (noteId: string) => {
     setStickyNotes((currentNotes) =>
       currentNotes.filter((note) => note.id !== noteId)
     );
+    setShouldCommit(true);
     setSelectedStickyNoteId((currentId) => (currentId === noteId ? null : currentId));
     interactionRef.current = { type: "idle" };
   };
@@ -815,6 +909,7 @@ const Board = () => {
         ? [...remainingShapes, ...selectedShapes]
         : [...selectedShapes, ...remainingShapes];
     });
+    setShouldCommit(true);
   };
 
   const handleColorSelect = (color: ShapeColor) => {
@@ -845,6 +940,7 @@ const Board = () => {
     if (editingTextShapeId && targetIds.includes(editingTextShapeId)) {
       requestAnimationFrame(() => textEditorRef.current?.focus());
     }
+    setShouldCommit(true);
   };
 
   const handleReset = () => {
@@ -856,10 +952,31 @@ const Board = () => {
     setSelectionBox(null);
     setEditingTextShapeId(null);
     interactionRef.current = { type: "idle" };
+    setShouldCommit(true);
   };
 
+  const handleUndo = useCallback(() => {
+    const state = undo();
+    if (state) {
+      setShapes(state.shapes);
+      setStickyNotes(state.stickyNotes);
+      setSelectedIds([]);
+      setSelectedStickyNoteId(null);
+    }
+  }, [undo]);
+
+  const handleRedo = useCallback(() => {
+    const state = redo();
+    if (state) {
+      setShapes(state.shapes);
+      setStickyNotes(state.stickyNotes);
+      setSelectedIds([]);
+      setSelectedStickyNoteId(null);
+    }
+  }, [redo]);
+
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-white">
+    <div className="relative h-screen w-screen overflow-hidden bg-white dark:bg-zinc-900 transition-colors">
       <canvas
         ref={canvasRef}
         className="block h-screen w-screen touch-none"
@@ -868,7 +985,7 @@ const Board = () => {
             ? "grab"
             : isStickyTool || isTextTool
               ? "copy"
-              : "default",
+              : cursorStyle,
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -911,12 +1028,16 @@ const Board = () => {
       </div>
       <BoardControls
         canLayerSelection={selectedIds.length > 0}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < historyLength - 1}
         zoom={zoom}
         onBringToFront={() => moveSelectedShapes("front")}
         onSendToBack={() => moveSelectedShapes("back")}
         onZoomIn={() => zoomAroundCenter(zoom * keyboardZoomStep)}
         onZoomOut={() => zoomAroundCenter(zoom / keyboardZoomStep)}
         onReset={handleReset}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
       />
       <FakeCollaboration viewportOffset={viewportOffset} zoom={zoom} />
     </div>

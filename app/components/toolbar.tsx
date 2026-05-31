@@ -65,8 +65,8 @@ const Toolbar = () => {
         <div className='
             flex items-center gap-1
             rounded-lg
-            border border-zinc-300
-            bg-white
+            border border-zinc-300 dark:border-zinc-700
+            bg-white dark:bg-zinc-800
             p-2
             shadow-[0_8px_30px_rgba(0,0,0,0.08)]'
         >
@@ -91,8 +91,8 @@ export const ColorSidebar = ({
         <div className='
             flex flex-col items-center gap-1
             rounded-lg
-            border border-zinc-300
-            bg-white
+            border border-zinc-300 dark:border-zinc-700
+            bg-white dark:bg-zinc-800
             p-2
             shadow-[0_8px_30px_rgba(0,0,0,0.08)]'
         >
@@ -128,12 +128,12 @@ const ToolbarItem = ({
             className={`
                 flex h-10 w-10 items-center justify-center
                 rounded-lg
-                border border-zinc-200
-                ${active ? "text-zinc-900" : "text-zinc-600"} 
-                ${active && "bg-zinc-100"}
+                border border-zinc-200 dark:border-zinc-700
+                ${active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-600 dark:text-zinc-400"} 
+                ${active && "bg-zinc-100 dark:bg-zinc-700"}
                 transition-all duration-150
-                hover:bg-zinc-100
-                hover:text-zinc-900
+                hover:bg-zinc-100 dark:hover:bg-zinc-700
+                hover:text-zinc-900 dark:hover:text-zinc-100
                 active:scale-95
             `}
             onClick={() => setSelectedTool(name)}
@@ -164,9 +164,9 @@ const ColorSidebarItem = ({
                 flex h-10 w-10 items-center justify-center
                 rounded-lg
                 border
-                ${active ? "border-zinc-900 bg-zinc-100" : "border-zinc-200 bg-white"}
+                ${active ? "border-zinc-900 bg-zinc-100 dark:border-zinc-300 dark:bg-zinc-700" : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800"}
                 transition-all duration-150
-                hover:bg-zinc-100
+                hover:bg-zinc-100 dark:hover:bg-zinc-700
                 active:scale-95
             `}
             onClick={() => {
@@ -175,7 +175,7 @@ const ColorSidebarItem = ({
             }}
         >
             {color === "transparent" ? (
-                <Ban size={20} strokeWidth={2} className="text-zinc-700" />
+                <Ban size={20} strokeWidth={2} className="text-zinc-700 dark:text-zinc-400" />
             ) : (
                 <span
                     className="h-5 w-5 rounded-full border border-zinc-300"
