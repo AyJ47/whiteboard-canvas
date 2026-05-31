@@ -6,6 +6,7 @@ import { ColorSidebar } from "./toolbar";
 import { BoardControls } from "./board/board-controls";
 import { StickyNotesLayer } from "./board/sticky-notes-layer";
 import { TextEditor } from "./board/text-editor";
+import { FakeCollaboration } from "./board/fake-collaboration";
 import {
   getStickyNoteFontSize,
   getVisibleTextColor,
@@ -846,6 +847,17 @@ const Board = () => {
     }
   };
 
+  const handleReset = () => {
+    setShapes([]);
+    setStickyNotes([]);
+    setSelectedIds([]);
+    setSelectedStickyNoteId(null);
+    setDraftShape(null);
+    setSelectionBox(null);
+    setEditingTextShapeId(null);
+    interactionRef.current = { type: "idle" };
+  };
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-white">
       <canvas
@@ -894,7 +906,7 @@ const Board = () => {
           />
         )}
       </div>
-      <div className="fixed left-4 top-1/2 z-40 -translate-y-1/2">
+      <div className="fixed left-4 top-1/2 z-40 -translate-y-1/2 max-md:top-24 max-md:translate-y-0">
         <ColorSidebar onColorSelect={handleColorSelect} />
       </div>
       <BoardControls
@@ -904,7 +916,9 @@ const Board = () => {
         onSendToBack={() => moveSelectedShapes("back")}
         onZoomIn={() => zoomAroundCenter(zoom * keyboardZoomStep)}
         onZoomOut={() => zoomAroundCenter(zoom / keyboardZoomStep)}
+        onReset={handleReset}
       />
+      <FakeCollaboration viewportOffset={viewportOffset} zoom={zoom} />
     </div>
   );
 };
