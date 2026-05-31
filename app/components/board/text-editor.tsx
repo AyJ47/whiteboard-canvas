@@ -25,7 +25,7 @@ export const TextEditor = ({
     <textarea
       ref={editorRef}
       aria-label="Text content"
-      className="pointer-events-auto absolute resize-none overflow-hidden rounded-md border border-blue-500 bg-white/90 p-1 text-zinc-900 outline-none shadow-sm placeholder:text-zinc-500"
+      className="pointer-events-auto absolute resize-none overflow-hidden rounded-md border border-blue-500 bg-white/90 p-1 text-zinc-900 outline-none shadow-sm placeholder:text-zinc-500 dark:bg-zinc-800/90 dark:text-zinc-100 dark:placeholder:text-zinc-400"
       value={shape.content}
       placeholder="Text"
       style={{

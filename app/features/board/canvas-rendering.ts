@@ -45,11 +45,12 @@ const drawRoundedRectPath = (
 export const drawShape = (
   context: CanvasRenderingContext2D,
   shape: BoardShape,
-  dashed: boolean
+  dashed: boolean,
+  isDark: boolean
 ) => {
   context.save();
   context.fillStyle = shape.fill;
-  context.strokeStyle = dashed ? "#111827" : "#0f172a";
+  context.strokeStyle = dashed ? (isDark ? "#f4f4f5" : "#111827") : (isDark ? "#d4d4d8" : "#0f172a");
   context.lineWidth = dashed ? 2 : 1;
   context.setLineDash(dashed ? [8, 6] : []);
 
@@ -58,7 +59,7 @@ export const drawShape = (
 
     context.font = `${fontSize}px sans-serif`;
     context.textBaseline = "top";
-    context.fillStyle = getVisibleTextColor(shape.fill);
+    context.fillStyle = getVisibleTextColor(shape.fill, isDark);
 
     const lineHeight = fontSize * 1.25;
     const lines = wrapText(context, shape.content, shape.width);
@@ -90,7 +91,7 @@ export const drawShape = (
     context.beginPath();
     context.moveTo(shape.x, shape.y);
     context.lineTo(shape.endX, shape.endY);
-    context.strokeStyle = shape.fill === "transparent" ? "#0f172a" : shape.fill;
+    context.strokeStyle = shape.fill === "transparent" ? (isDark ? "#d4d4d8" : "#0f172a") : shape.fill;
     context.lineWidth = dashed ? 2 : 3;
     context.stroke();
     context.restore();
@@ -105,13 +106,13 @@ export const drawShape = (
   context.restore();
 };
 
-export const drawSelectionBox = (context: CanvasRenderingContext2D, box: Box) => {
+export const drawSelectionBox = (context: CanvasRenderingContext2D, box: Box, isDark: boolean) => {
   context.save();
-  context.strokeStyle = "#2563eb";
+  context.strokeStyle = isDark ? "#60a5fa" : "#2563eb";
   context.lineWidth = 1;
   context.setLineDash([6, 4]);
   context.strokeRect(box.x, box.y, box.width, box.height);
-  context.fillStyle = "rgba(59, 130, 246, 0.08)";
+  context.fillStyle = isDark ? "rgba(96, 165, 250, 0.15)" : "rgba(59, 130, 246, 0.08)";
   context.fillRect(box.x, box.y, box.width, box.height);
   context.restore();
 };
@@ -119,18 +120,19 @@ export const drawSelectionBox = (context: CanvasRenderingContext2D, box: Box) =>
 export const drawTransformer = (
   context: CanvasRenderingContext2D,
   box: Box,
-  zoom: number
+  zoom: number,
+  isDark: boolean
 ) => {
   context.save();
-  context.strokeStyle = "#2563eb";
+  context.strokeStyle = isDark ? "#60a5fa" : "#2563eb";
   context.lineWidth = 1 / zoom;
   context.setLineDash([]);
   context.strokeRect(box.x, box.y, box.width, box.height);
 
   const handles = getHandlePoints(box);
   const scaledHandleSize = handleSize / zoom;
-  context.fillStyle = "#ffffff";
-  context.strokeStyle = "#2563eb";
+  context.fillStyle = isDark ? "#18181b" : "#ffffff";
+  context.strokeStyle = isDark ? "#60a5fa" : "#2563eb";
 
   Object.values(handles).forEach((point) => {
     context.beginPath();
@@ -151,7 +153,8 @@ export const drawGrid = (
   context: CanvasRenderingContext2D,
   boardSize: BoardSize,
   viewportOffset: Point,
-  zoom: number
+  zoom: number,
+  isDark: boolean
 ) => {
   const gridSize = 40;
   const minWorldX = -viewportOffset.x / zoom;
@@ -162,7 +165,7 @@ export const drawGrid = (
   const startWorldY = Math.floor(minWorldY / gridSize) * gridSize;
 
   context.save();
-  context.strokeStyle = "#f1f5f9";
+  context.strokeStyle = isDark ? "#27272a" : "#f1f5f9";
   context.lineWidth = 1;
 
   for (let worldX = startWorldX; worldX <= maxWorldX; worldX += gridSize) {
@@ -186,9 +189,10 @@ export const drawGrid = (
 
 export const drawSelection = (
   context: CanvasRenderingContext2D,
-  selectionBox: SelectionBox | null
+  selectionBox: SelectionBox | null,
+  isDark: boolean
 ) => {
   if (selectionBox?.visible) {
-    drawSelectionBox(context, getBoxFromPoints(selectionBox.start, selectionBox.end));
+    drawSelectionBox(context, getBoxFromPoints(selectionBox.start, selectionBox.end), isDark);
   }
 };

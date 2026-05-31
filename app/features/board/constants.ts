@@ -27,8 +27,8 @@ export const stickyNoteFontStep = 2;
 export const stickyNoteColors = ["#fef08a", "#fed7aa", "#bfdbfe", "#bbf7d0", "#fbcfe8"];
 export const defaultTextColor = "#111827";
 
-export const getVisibleTextColor = (fill: string) =>
-  fill === "transparent" ? defaultTextColor : fill;
+export const getVisibleTextColor = (fill: string, isDark: boolean = false) =>
+  fill === "transparent" ? (isDark ? "#f4f4f5" : defaultTextColor) : fill;
 
 export const getStickyNoteFontSize = (note: StickyNote) =>
   note.fontSize ?? defaultStickyNoteFontSize;
