@@ -86,6 +86,17 @@ export const drawShape = (
     return;
   }
 
+  if (shape.type === "line") {
+    context.beginPath();
+    context.moveTo(shape.x, shape.y);
+    context.lineTo(shape.endX, shape.endY);
+    context.strokeStyle = shape.fill === "transparent" ? "#0f172a" : shape.fill;
+    context.lineWidth = dashed ? 2 : 3;
+    context.stroke();
+    context.restore();
+    return;
+  }
+
   drawRoundedRectPath(context, shape, roundedRectangleRadius);
   if (shape.fill !== "transparent") {
     context.fill();

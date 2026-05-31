@@ -29,6 +29,15 @@ export const getShapeBox = (shape: BoardShape): Box => {
     };
   }
 
+  if (shape.type === "line") {
+    return {
+      x: Math.min(shape.x, shape.endX),
+      y: Math.min(shape.y, shape.endY),
+      width: Math.abs(shape.endX - shape.x),
+      height: Math.abs(shape.endY - shape.y),
+    };
+  }
+
   return {
     x: shape.x,
     y: shape.y,
@@ -72,6 +81,16 @@ export const getShapesBox = (shapes: BoardShape[]): Box | null => {
 export const pointInShape = (point: Point, shape: BoardShape) => {
   if (shape.type === "circle") {
     return Math.hypot(point.x - shape.x, point.y - shape.y) <= shape.radius;
+  }
+
+  if (shape.type === "line") {
+    const padding = 10;
+    const l2 = Math.pow(shape.endX - shape.x, 2) + Math.pow(shape.endY - shape.y, 2);
+    if (l2 === 0) return Math.hypot(point.x - shape.x, point.y - shape.y) <= padding;
+    let t = ((point.x - shape.x) * (shape.endX - shape.x) + (point.y - shape.y) * (shape.endY - shape.y)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const dist = Math.hypot(point.x - (shape.x + t * (shape.endX - shape.x)), point.y - (shape.y + t * (shape.endY - shape.y)));
+    return dist <= padding;
   }
 
   return (
@@ -182,6 +201,16 @@ export const resizeShapeFromBox = (
         maxTextFontSize,
         Math.max(minTextFontSize, shape.fontSize * textScale)
       ),
+    };
+  }
+
+  if (shape.type === "line") {
+    return {
+      ...shape,
+      x: nextBox.x + (shape.x - startBox.x) * scaleX,
+      y: nextBox.y + (shape.y - startBox.y) * scaleY,
+      endX: nextBox.x + (shape.endX - startBox.x) * scaleX,
+      endY: nextBox.y + (shape.endY - startBox.y) * scaleY,
     };
   }
 

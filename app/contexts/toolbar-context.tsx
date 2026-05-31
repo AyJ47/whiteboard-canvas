@@ -12,6 +12,7 @@ export type Tool =
   | "hand"
   | "rect"
   | "circle"
+  | "line"
   | "text"
   | "sticky";
 

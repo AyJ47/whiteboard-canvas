@@ -18,6 +18,7 @@ import {
   RectangleShape,
   StickyNote,
   TextShape,
+  LineShape,
 } from "./types";
 
 export const createRectangle = (
@@ -69,7 +70,23 @@ export const createStickyNote = (point: Point): StickyNote => ({
   fontSize: defaultStickyNoteFontSize,
 });
 
+export const createLine = (
+  id: string,
+  start: Point,
+  end: Point,
+  fill: ShapeColor
+): LineShape => ({
+  id,
+  type: "line",
+  x: start.x,
+  y: start.y,
+  endX: end.x,
+  endY: end.y,
+  fill,
+});
+
 export const drawingTools: DrawingToolMap = {
   rect: createRectangle,
   circle: createCircle,
+  line: createLine,
 } satisfies Partial<Record<Tool, (id: string, start: Point, end: Point, fill: ShapeColor) => BoardShape>>;

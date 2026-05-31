@@ -1,6 +1,6 @@
 "use client"
 
-import { Ban, Circle, Hand, LucideIcon, MousePointer2, RectangleHorizontal, StickyNote, Type } from 'lucide-react'
+import { Ban, Circle, Hand, LucideIcon, Minus, MousePointer2, RectangleHorizontal, StickyNote, Type } from 'lucide-react'
 import React from 'react'
 import { ShapeColor, Tool, useToolbar } from '../contexts/toolbar-context';
 
@@ -20,6 +20,10 @@ const toolbarItems: ToolbarItemInterface[] = [{
     name: "circle",
     tooltip: "Circle",
     icon: Circle,    
+}, {
+    name: "line",
+    tooltip: "Line",
+    icon: Minus,
 }, {
     name: "text",
     tooltip: "Text",

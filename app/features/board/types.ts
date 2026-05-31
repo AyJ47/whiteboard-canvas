@@ -19,6 +19,16 @@ export interface CircleShape {
   fill: string;
 }
 
+export interface LineShape {
+  id: string;
+  type: "line";
+  x: number;
+  y: number;
+  endX: number;
+  endY: number;
+  fill: string;
+}
+
 export interface TextShape {
   id: string;
   type: "text";
@@ -31,7 +41,7 @@ export interface TextShape {
   fontSize: number;
 }
 
-export type BoardShape = RectangleShape | CircleShape | TextShape;
+export type BoardShape = RectangleShape | CircleShape | LineShape | TextShape;
 export type ResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
 export interface StickyNote {
