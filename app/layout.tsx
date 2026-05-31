@@ -31,7 +31,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ToolbarProvider>
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-md:w-[95%] max-md:overflow-x-auto">
             <Toolbar />
           </div>
           {children}
