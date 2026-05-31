@@ -79,21 +79,21 @@ export const FakeCollaboration = ({
           className="text-pink-500 -ml-[10px] -mt-[10px] origin-top-left"
           fill="currentColor"
         />
-        <div className="ml-3 mt-1 rounded-md bg-pink-500 px-2 py-0.5 text-xs font-semibold text-white shadow-md dark:bg-pink-600">
+        <div className="ml-3 mt-1 rounded-md bg-pink-500 border border-pink-700 px-2 py-0.5 text-xs font-semibold text-white shadow-md dark:bg-pink-600 dark:border-pink-300">
           Alice
         </div>
       </div>
 
       {/* Editing State Label in the corner */}
       <div
-        className={`fixed right-4 top-20 z-50 flex items-center gap-2 rounded-full border border-pink-200 bg-pink-50 px-3 py-1.5 shadow-sm transition-opacity duration-300 dark:border-pink-800 dark:bg-pink-900/30 ${
+        className={`fixed right-4 top-20 z-50 flex items-center gap-2 rounded-full border border-pink-300 bg-pink-100 px-3 py-1.5 shadow-sm transition-opacity duration-300 dark:border-pink-600 dark:bg-pink-800 ${
           isEditing ? "opacity-100" : "opacity-0"
         }`}
       >
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-pink-100 text-pink-600 dark:bg-pink-900/50 dark:text-pink-400">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-pink-200 text-pink-800 dark:bg-pink-700 dark:text-pink-200">
           <User size={14} />
         </div>
-        <span className="text-sm font-medium text-pink-700 dark:text-pink-300">
+        <span className="text-sm font-medium text-pink-800 dark:text-pink-200">
           Alice is editing...
         </span>
       </div>

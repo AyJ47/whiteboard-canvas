@@ -1,3 +1,5 @@
+"use client"
+
 import { BringToFront, Minus, Plus, Redo2, SendToBack, Trash2, Undo2 } from "lucide-react";
 import { maxZoom, minZoom } from "../../features/board/constants";
 
